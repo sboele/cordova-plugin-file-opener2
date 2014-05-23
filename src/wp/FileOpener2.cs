@@ -1,3 +1,6 @@
+using System;
+using Windows.Storage;
+using Windows.System;
 using WPCordovaClassLib.Cordova;
 using WPCordovaClassLib.Cordova.Commands;
 using WPCordovaClassLib.Cordova.JSON;
@@ -12,9 +15,27 @@ namespace Cordova.Extension.Commands
 
 			try
 			{
-				string[] args = JSON.JsonHelper.Deserialize<string[]>(options);
+				string[] args = JsonHelper.Deserialize<string[]>(options);
+
+				string filePath = args[0];
+				string contentType = args[1];
+
+				StorageFolder folder = ApplicationData.Current.LocalFolder;
+
+				string fileName = filePath.Substring(filePath.LastIndexOf('/') + 1);
+				filePath = filePath.Replace("/" + fileName, "");
+				foreach (string part in filePath.Split('/'))
+				{
+					if (!String.IsNullOrWhiteSpace(part))
+					{
+						folder = folder.GetFolderAsync(part).GetAwaiter().GetResult();
+					}
+				}
+
+				StorageFile file = folder.GetFileAsync(fileName).GetAwaiter().GetResult();
+				Launcher.LaunchFileAsync(file);
 			}
-			catch(Exception)
+			catch (Exception ex)
 			{
 
 			}
